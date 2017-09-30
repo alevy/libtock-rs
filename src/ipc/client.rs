@@ -6,8 +6,7 @@ use alloc::String;
 use alloc::boxed::Box;
 use alloc::raw_vec::RawVec;
 use alloc::allocator::{Alloc, Layout};
-
-const DRIVER_NUM: u32 = 0xff;
+use ipc::DRIVER_NUM;
 
 pub struct Client {
     pid: u32
@@ -20,6 +19,14 @@ impl Client {
             Ok(Client {
                 pid: res as u32
             })
+        }
+    }
+
+    pub fn ping(&mut self) -> Result<(), ()> {
+        if unsafe {syscalls::command(DRIVER_NUM, self.pid, 0)} < 0 {
+            Ok(())
+        } else {
+            Err(())
         }
     }
 
@@ -43,6 +50,7 @@ impl Client {
         }
     }
 
+    // This is actually notify service
     pub fn notify(&mut self) -> Result<(), ()> {
         let done = Cell::new(false);
         let ptr = &done as *const _ as usize;
